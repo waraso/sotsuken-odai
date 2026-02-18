@@ -14,22 +14,20 @@ export default defineConfig({
     optimizeDeps: {
       include: ['kuroshiro', 'kuroshiro-analyzer-kuromoji']
     },
-    server: {
-      // Disable gzip compression for static files
-      middlewareMode: false,
-    },
     plugins: [{
       name: 'no-gzip-dict-files',
       configureServer(server) {
         server.middlewares.use((req, res, next) => {
-          // Remove gzip encoding for .dat.gz files
+          // Prevent automatic gzip encoding for .dat.gz files
+          // Kuromoji expects to receive the gzipped files as-is and decompress them itself
           if (req.url && req.url.match(/\.dat\.gz$/)) {
-            const _setHeader = res.setHeader.bind(res);
-            res.setHeader = (name, value) => {
+            const originalSetHeader = res.setHeader.bind(res);
+            res.setHeader = function(name, value) {
               if (name.toLowerCase() === 'content-encoding') {
-                return res;
+                // Skip setting content-encoding header for dict files
+                return this;
               }
-              return _setHeader(name, value);
+              return originalSetHeader(name, value);
             };
           }
           next();

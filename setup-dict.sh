@@ -14,12 +14,13 @@ mkdir -p "$DICT_DEST"
 # Copy all dictionary files
 cp -r "$DICT_SOURCE"/* "$DICT_DEST/"
 
-# Decompress all .gz files
+# Decompress all .gz files and remove the compressed versions
 cd "$DICT_DEST"
 for file in *.dat.gz; do
     if [ -f "$file" ]; then
         echo "Decompressing $file..."
         gunzip -c "$file" > "${file%.gz}"
+        rm "$file"
     fi
 done
 
