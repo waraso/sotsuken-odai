@@ -4,6 +4,8 @@ import tailwind from '@astrojs/tailwind';
 // https://astro.build/config
 export default defineConfig({
   output: 'static',
+  site: 'https://waraso.github.io',
+  base: '/sotsuken-odai',
   integrations: [tailwind()],
   vite: {
     resolve: {
