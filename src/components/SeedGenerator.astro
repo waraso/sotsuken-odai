@@ -1,307 +1,374 @@
 ---
 function getValidationRegex() {
-    // This part should technically be shared or imported, but we'll inline for simplicity in the component logic
-    // We'll actually do the validation logic client-side in the script tag below.
-    return "";
+  // This part should technically be shared or imported, but we'll inline for simplicity in the component logic
+  // We'll actually do the validation logic client-side in the script tag below.
+  return "";
 }
 ---
 
 <div id="app-container">
-    <!-- File Upload -->
-    <div id="dropzone" class="border-2 border-dashed border-slate-700 rounded-2xl p-12 text-center bg-slate-800/50 cursor-pointer transition-all mb-8 hover:border-indigo-500 hover:bg-indigo-500/10">
-        <input type="file" id="fileInput" accept=".sql" class="hidden" />
-        <p class="text-slate-400 pointer-events-none">
-            <code>seed.sql</code> をここにドラッグ＆ドロップ、またはクリックしてアップロード
-        </p>
+  <!-- File Upload -->
+  <div
+    id="dropzone"
+    class="border-2 border-dashed border-slate-700 rounded-2xl p-12 text-center bg-slate-800/50 cursor-pointer transition-all mb-8 hover:border-indigo-500 hover:bg-indigo-500/10"
+  >
+    <input type="file" id="fileInput" accept=".sql" class="hidden" />
+    <p class="text-slate-400 pointer-events-none">
+      <code>seed.sql</code> をここにドラッグ＆ドロップ、またはクリックしてアップロード
+    </p>
+  </div>
+
+  <!-- Main Content -->
+  <div id="mainContent">
+    <!-- Tabs -->
+    <div class="flex gap-4 mb-6 border-b border-slate-700 pb-2">
+      <button
+        class="tab-btn active px-4 py-2 text-indigo-400 font-semibold border-b-2 border-indigo-400 transition-colors"
+        data-tab="text">テキスト</button
+      >
+      <button
+        class="tab-btn px-4 py-2 text-slate-400 font-semibold hover:text-indigo-400 transition-colors"
+        data-tab="code">コード</button
+      >
     </div>
 
-    <!-- Main Content -->
-    <div id="mainContent">
-        <!-- Tabs -->
-        <div class="flex gap-4 mb-6 border-b border-slate-700 pb-2">
-            <button class="tab-btn active px-4 py-2 text-indigo-400 font-semibold border-b-2 border-indigo-400 transition-colors" data-tab="text">テキスト</button>
-            <button class="tab-btn px-4 py-2 text-slate-400 font-semibold hover:text-indigo-400 transition-colors" data-tab="code">コード</button>
-        </div>
-
-        <!-- Add New Form -->
-        <div class="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-wrap gap-4 items-end mb-8">
-            <div class="flex-1 min-w-[200px]">
-                <label for="displayText" class="block text-sm text-slate-400 mb-2">表示テキスト</label>
-                <input type="text" id="displayText" class="w-full bg-slate-900 border border-slate-700 text-slate-50 p-3 rounded-lg outline-none focus:border-indigo-500 transition-colors" placeholder="例: 猫">
-            </div>
-            <div class="flex-1 min-w-[200px]">
-                <label id="hiraganaLabel" for="hiraganaText" class="block text-sm text-slate-400 mb-2">ひらがな</label>
-                <input type="text" id="hiraganaText" class="w-full bg-slate-900 border border-slate-700 text-slate-50 p-3 rounded-lg outline-none focus:border-indigo-500 transition-colors" placeholder="例: ねこ">
-            </div>
-            <button id="btnAdd" class="bg-indigo-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-600 transition-colors">追加</button>
-        </div>
-
-        <!-- List -->
-        <div id="itemList" class="grid gap-4 mb-8 max-h-[60vh] overflow-y-auto pr-2">
-            <!-- Items rendered here -->
-        </div>
-
-        <!-- Export -->
-        <button id="btnExport" class="w-full text-lg p-4 bg-gradient-to-br from-indigo-500 to-violet-500 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity">SQLをエクスポート</button>
+    <!-- Add New Form -->
+    <div
+      class="bg-slate-800 border border-slate-700 rounded-2xl p-6 flex flex-wrap gap-4 items-end mb-8"
+    >
+      <div class="flex-1 min-w-[200px]">
+        <label for="displayText" class="block text-sm text-slate-400 mb-2"
+          >表示テキスト</label
+        >
+        <input
+          type="text"
+          id="displayText"
+          class="w-full bg-slate-900 border border-slate-700 text-slate-50 p-3 rounded-lg outline-none focus:border-indigo-500 transition-colors"
+          placeholder="例: 猫"
+        />
+      </div>
+      <div class="flex-1 min-w-[200px]">
+        <label
+          id="hiraganaLabel"
+          for="hiraganaText"
+          class="block text-sm text-slate-400 mb-2">ひらがな</label
+        >
+        <input
+          type="text"
+          id="hiraganaText"
+          class="w-full bg-slate-900 border border-slate-700 text-slate-50 p-3 rounded-lg outline-none focus:border-indigo-500 transition-colors"
+          placeholder="例: ねこ"
+        />
+      </div>
+      <button
+        id="btnAdd"
+        class="bg-indigo-500 text-white px-6 py-3 rounded-lg font-semibold hover:bg-indigo-600 transition-colors"
+        >追加</button
+      >
     </div>
+
+    <!-- List -->
+    <div
+      id="itemList"
+      class="grid gap-4 mb-8 max-h-[60vh] overflow-y-auto pr-2"
+    >
+      <!-- Items rendered here -->
+    </div>
+
+    <!-- Export -->
+    <button
+      id="btnExport"
+      class="w-full text-lg p-4 bg-gradient-to-br from-indigo-500 to-violet-500 text-white rounded-lg font-semibold hover:opacity-90 transition-opacity"
+      >SQLをエクスポート</button
+    >
+  </div>
 </div>
 
 <script>
-    import { allowedChars } from '../consts';
-    import { escapeHtml, generateValidationRegex } from '../utils';
-    import type { Item } from '../types';
-    // @ts-ignore
-    import _Kuroshiro from 'kuroshiro';
-    // @ts-ignore
-    import _KuromojiAnalyzer from 'kuroshiro-analyzer-kuromoji';
+  import { allowedChars } from "../consts";
+  import { escapeHtml, generateValidationRegex } from "../utils";
+  import type { Item } from "../types";
+  // @ts-ignore
+  import _Kuroshiro from "kuroshiro";
+  // @ts-ignore
+  import _KuromojiAnalyzer from "kuroshiro-analyzer-kuromoji";
 
-    // Handle CJS/ESM interop
-    const Kuroshiro = _Kuroshiro.default || _Kuroshiro;
-    const KuromojiAnalyzer = _KuromojiAnalyzer.default || _KuromojiAnalyzer;
+  // Handle CJS/ESM interop
+  const Kuroshiro = _Kuroshiro.default || _Kuroshiro;
+  const KuromojiAnalyzer = _KuromojiAnalyzer.default || _KuromojiAnalyzer;
 
-    // Validation Regex
-    const validationRegex = generateValidationRegex(allowedChars);
+  // Validation Regex
+  const validationRegex = generateValidationRegex(allowedChars);
 
-    // Initialize kuroshiro
-    let kuroshiro: any = null;
-    async function initKuroshiro() {
-        if (kuroshiro) return kuroshiro;
-        
-        const k = new Kuroshiro();
-        console.log('[Client] Initializing Kuroshiro with KuromojiAnalyzer');
-        // Specify dictPath to load from public/dict
-        await k.init(new KuromojiAnalyzer({ dictPath: '/dict' }));
-        kuroshiro = k;
-        return k;
+  // Initialize kuroshiro
+  let kuroshiro: any = null;
+  async function initKuroshiro() {
+    if (kuroshiro) return kuroshiro;
+
+    const k = new Kuroshiro();
+    console.log("[Client] Initializing Kuroshiro with KuromojiAnalyzer");
+    // Specify dictPath to load from public/dict
+    await k.init(
+      new KuromojiAnalyzer({ dictPath: import.meta.env.BASE_URL + "/dict" }),
+    );
+    kuroshiro = k;
+    return k;
+  }
+
+  // Initialize kuroshiro when the script loads
+  initKuroshiro().catch((err) => {
+    console.error("[Client] Failed to initialize kuroshiro:", err);
+  });
+
+  // State
+  let items: Item[] = [];
+  let currentTab = "text";
+
+  // Elements
+  const dropzone = document.getElementById("dropzone")!;
+  const fileInput = document.getElementById("fileInput") as HTMLInputElement;
+  const itemList = document.getElementById("itemList")!;
+  const displayText = document.getElementById(
+    "displayText",
+  ) as HTMLInputElement;
+  const hiraganaText = document.getElementById(
+    "hiraganaText",
+  ) as HTMLInputElement;
+  const hiraganaLabel = document.getElementById("hiraganaLabel")!;
+  const btnAdd = document.getElementById("btnAdd")!;
+  const btnExport = document.getElementById("btnExport")!;
+  const tabBtns = document.querySelectorAll(".tab-btn");
+
+  let sqlHeader =
+    "INSERT INTO\n  text (is_code, display_text, hiragana_text)\nVALUES\n";
+
+  // Event Listeners
+  dropzone.addEventListener("click", () => fileInput.click());
+  dropzone.addEventListener("dragover", (e) => {
+    e.preventDefault();
+    dropzone.classList.add("border-indigo-500", "bg-indigo-500/10");
+  });
+  dropzone.addEventListener("dragleave", () => {
+    dropzone.classList.remove("border-indigo-500", "bg-indigo-500/10");
+  });
+  dropzone.addEventListener("drop", (e) => {
+    e.preventDefault();
+    dropzone.classList.remove("border-indigo-500", "bg-indigo-500/10");
+    if (e.dataTransfer && e.dataTransfer.files.length)
+      handleFile(e.dataTransfer.files[0]);
+  });
+  fileInput.addEventListener("change", (e) => {
+    const target = e.target as HTMLInputElement;
+    if (target.files && target.files.length) handleFile(target.files[0]);
+  });
+
+  tabBtns.forEach((btn) => {
+    btn.addEventListener("click", () => {
+      tabBtns.forEach((b) => {
+        b.classList.remove(
+          "active",
+          "text-indigo-400",
+          "border-b-2",
+          "border-indigo-400",
+        );
+        b.classList.add("text-slate-400");
+      });
+      btn.classList.add(
+        "active",
+        "text-indigo-400",
+        "border-b-2",
+        "border-indigo-400",
+      );
+      btn.classList.remove("text-slate-400");
+
+      const tab = (btn as HTMLElement).dataset.tab;
+      if (tab) {
+        currentTab = tab;
+        renderList();
+        updateFormPlaceholder();
+      }
+    });
+  });
+
+  btnAdd.addEventListener("click", addItem);
+  btnExport.addEventListener("click", exportSQL);
+
+  // Auto-conversion logic
+  displayText.addEventListener("input", async (e) => {
+    // Only convert if in text mode
+    if (currentTab !== "text") return;
+
+    const text = (e.target as HTMLInputElement).value;
+    if (!text) {
+      hiraganaText.value = "";
+      // Clear debounce
+      clearTimeout((displayText as any)._debounceTimer);
+      return;
     }
 
-    // Initialize kuroshiro when the script loads
-    initKuroshiro().catch(err => {
-        console.error('[Client] Failed to initialize kuroshiro:', err);
-    });
+    // Use a debounce to avoid too many conversions
+    // Simple debounce implementation
+    clearTimeout((displayText as any)._debounceTimer);
+    (displayText as any)._debounceTimer = setTimeout(async () => {
+      try {
+        console.log("[Client] Converting text:", text);
+        const k = await initKuroshiro();
+        let result = await k.convert(text, { to: "hiragana" });
 
-    // State
-    let items: Item[] = [];
-    let currentTab = 'text';
-
-    // Elements
-    const dropzone = document.getElementById('dropzone')!;
-    const fileInput = document.getElementById('fileInput') as HTMLInputElement;
-    const itemList = document.getElementById('itemList')!;
-    const displayText = document.getElementById('displayText') as HTMLInputElement;
-    const hiraganaText = document.getElementById('hiraganaText') as HTMLInputElement;
-    const hiraganaLabel = document.getElementById('hiraganaLabel')!;
-    const btnAdd = document.getElementById('btnAdd')!;
-    const btnExport = document.getElementById('btnExport')!;
-    const tabBtns = document.querySelectorAll('.tab-btn');
-
-    let sqlHeader = "INSERT INTO\n  text (is_code, display_text, hiragana_text)\nVALUES\n";
-
-    // Event Listeners
-    dropzone.addEventListener('click', () => fileInput.click());
-    dropzone.addEventListener('dragover', (e) => {
-        e.preventDefault();
-        dropzone.classList.add('border-indigo-500', 'bg-indigo-500/10');
-    });
-    dropzone.addEventListener('dragleave', () => {
-        dropzone.classList.remove('border-indigo-500', 'bg-indigo-500/10');
-    });
-    dropzone.addEventListener('drop', (e) => {
-        e.preventDefault();
-        dropzone.classList.remove('border-indigo-500', 'bg-indigo-500/10');
-        if (e.dataTransfer && e.dataTransfer.files.length) handleFile(e.dataTransfer.files[0]);
-    });
-    fileInput.addEventListener('change', (e) => {
-        const target = e.target as HTMLInputElement;
-        if (target.files && target.files.length) handleFile(target.files[0]);
-    });
-
-    tabBtns.forEach(btn => {
-        btn.addEventListener('click', () => {
-            tabBtns.forEach(b => {
-                b.classList.remove('active', 'text-indigo-400', 'border-b-2', 'border-indigo-400');
-                b.classList.add('text-slate-400');
-            });
-            btn.classList.add('active', 'text-indigo-400', 'border-b-2', 'border-indigo-400');
-            btn.classList.remove('text-slate-400');
-            
-            const tab = (btn as HTMLElement).dataset.tab;
-            if (tab) {
-                currentTab = tab;
-                renderList();
-                updateFormPlaceholder();
+        // Post-process with kanaToHiragana to ensure Katakana is converted
+        const util = Kuroshiro.Util;
+        if (util) {
+          const converter = util.kanaToHiragana || util.kanaToHiragna;
+          if (converter) {
+            // Check if we have katakana
+            if (
+              (util.isKatakana && util.isKatakana(result)) ||
+              (util.hasKatakana && util.hasKatakana(result))
+            ) {
+              console.log("[Client] Post-processing Katakana");
+              result = converter(result);
             }
-        });
-    });
-
-    btnAdd.addEventListener('click', addItem);
-    btnExport.addEventListener('click', exportSQL);
-
-    // Auto-conversion logic
-    displayText.addEventListener('input', async (e) => {
-        // Only convert if in text mode
-        if (currentTab !== 'text') return;
-        
-        const text = (e.target as HTMLInputElement).value;
-        if (!text) {
-            hiraganaText.value = '';
-            // Clear debounce
-            clearTimeout((displayText as any)._debounceTimer);
-            return;
+          }
         }
 
-        // Use a debounce to avoid too many conversions
-        // Simple debounce implementation
-        clearTimeout((displayText as any)._debounceTimer);
-        (displayText as any)._debounceTimer = setTimeout(async () => {
-            try {
-                console.log('[Client] Converting text:', text);
-                const k = await initKuroshiro();
-                let result = await k.convert(text, { to: 'hiragana' });
-                
-                // Post-process with kanaToHiragana to ensure Katakana is converted
-                const util = Kuroshiro.Util;
-                if (util) {
-                    const converter = util.kanaToHiragana || util.kanaToHiragna;
-                    if (converter) {
-                        // Check if we have katakana
-                        if ((util.isKatakana && util.isKatakana(result)) || (util.hasKatakana && util.hasKatakana(result))) {
-                            console.log('[Client] Post-processing Katakana');
-                            result = converter(result);
-                        }
-                    }
-                }
-                
-                console.log('[Client] Conversion result:', result);
-                hiraganaText.value = result;
-            } catch (err) {
-                console.error('[Client] Conversion failed', err);
-            }
-        }, 500); // 500ms debounce
-    });
+        console.log("[Client] Conversion result:", result);
+        hiraganaText.value = result;
+      } catch (err) {
+        console.error("[Client] Conversion failed", err);
+      }
+    }, 500); // 500ms debounce
+  });
 
-    function handleFile(file: File) {
-        const reader = new FileReader();
-        reader.onload = (e) => {
-            const content = e.target?.result as string;
-            if (items.length > 0 && !confirm('既存のアイテムは消去されます。続けますか？')) {
-                return;
-            }
-            parseSQL(content);
-            renderList();
-        };
-        reader.readAsText(file);
+  function handleFile(file: File) {
+    const reader = new FileReader();
+    reader.onload = (e) => {
+      const content = e.target?.result as string;
+      if (
+        items.length > 0 &&
+        !confirm("既存のアイテムは消去されます。続けますか？")
+      ) {
+        return;
+      }
+      parseSQL(content);
+      renderList();
+    };
+    reader.readAsText(file);
+  }
+
+  function parseSQL(content: string) {
+    const regex =
+      /\(\s*(true|false)\s*,\s*'((?:[^']|'')*)'\s*,\s*'((?:[^']|'')*)'\s*\)/g;
+    items = [];
+    let match;
+    while ((match = regex.exec(content)) !== null) {
+      items.push({
+        is_code: match[1] === "true",
+        display_text: match[2].replace(/''/g, "'"),
+        hiragana_text: match[3].replace(/''/g, "'"),
+      });
+    }
+    console.log(`Parsed ${items.length} characters.`);
+  }
+
+  function renderList() {
+    itemList.innerHTML = "";
+    const isCodeTab = currentTab === "code";
+    const filteredItems = items.filter((item) => item.is_code === isCodeTab);
+
+    if (filteredItems.length === 0) {
+      itemList.innerHTML =
+        '<div class="text-center p-8 text-slate-400 border border-dashed border-slate-700 rounded-xl">このカテゴリのアイテムはありません。</div>';
+      return;
     }
 
-    function parseSQL(content: string) {
-        const regex = /\(\s*(true|false)\s*,\s*'((?:[^']|'')*)'\s*,\s*'((?:[^']|'')*)'\s*\)/g;
-        items = [];
-        let match;
-        while ((match = regex.exec(content)) !== null) {
-            items.push({
-                is_code: match[1] === 'true',
-                display_text: match[2].replace(/''/g, "'"),
-                hiragana_text: match[3].replace(/''/g, "'")
-            });
-        }
-        console.log(`Parsed ${items.length} characters.`);
-    }
-
-    function renderList() {
-        itemList.innerHTML = '';
-        const isCodeTab = currentTab === 'code';
-        const filteredItems = items.filter(item => item.is_code === isCodeTab);
-
-        if (filteredItems.length === 0) {
-            itemList.innerHTML = '<div class="text-center p-8 text-slate-400 border border-dashed border-slate-700 rounded-xl">このカテゴリのアイテムはありません。</div>';
-            return;
-        }
-
-        const fragment = document.createDocumentFragment();
-        filteredItems.forEach(item => {
-            const div = document.createElement('div');
-            div.className = 'bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center gap-4 animate-[fadeIn_0.3s_ease]';
-            div.innerHTML = `
+    const fragment = document.createDocumentFragment();
+    filteredItems.forEach((item) => {
+      const div = document.createElement("div");
+      div.className =
+        "bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center gap-4 animate-[fadeIn_0.3s_ease]";
+      div.innerHTML = `
                 <div class="flex-1">
                     <div class="font-bold text-lg mb-1">${escapeHtml(item.display_text)}</div>
                     <div class="text-slate-400 text-sm">${escapeHtml(item.hiragana_text)}</div>
                 </div>
                 <button class="bg-red-500/10 text-red-500 p-2 rounded-lg hover:bg-red-500/20 transition-colors btn-delete" title="削除">✕</button>
             `;
-            
-            div.querySelector('.btn-delete')!.addEventListener('click', () => {
-                const index = items.indexOf(item);
-                if (index > -1) {
-                    items.splice(index, 1);
-                    renderList();
-                }
-            });
-            fragment.appendChild(div);
-        });
-        itemList.appendChild(fragment);
+
+      div.querySelector(".btn-delete")!.addEventListener("click", () => {
+        const index = items.indexOf(item);
+        if (index > -1) {
+          items.splice(index, 1);
+          renderList();
+        }
+      });
+      fragment.appendChild(div);
+    });
+    itemList.appendChild(fragment);
+  }
+
+  function addItem() {
+    const display = displayText.value.trim();
+    const hiragana = hiraganaText.value.trim();
+
+    if (!display || !hiragana) {
+      alert("両方の項目を入力してください。");
+      return;
     }
 
-    function addItem() {
-        const display = displayText.value.trim();
-        const hiragana = hiraganaText.value.trim();
-
-        if (!display || !hiragana) {
-            alert('両方の項目を入力してください。');
-            return;
-        }
-
-        if (!validationRegex.test(hiragana)) {
-            alert('ひらがな/コード欄に無効な文字が含まれています。\n許可された文字と組み合わせのみを使用してください。');
-            return;
-        }
-
-        items.push({
-            is_code: currentTab === 'code',
-            display_text: display,
-            hiragana_text: hiragana
-        });
-
-        displayText.value = '';
-        hiraganaText.value = '';
-        renderList();
-        itemList.scrollTop = itemList.scrollHeight;
+    if (!validationRegex.test(hiragana)) {
+      alert(
+        "ひらがな/コード欄に無効な文字が含まれています。\n許可された文字と組み合わせのみを使用してください。",
+      );
+      return;
     }
 
-    function exportSQL() {
-        if (items.length === 0) {
-            alert('エクスポートするアイテムがありません。');
-            return;
-        }
+    items.push({
+      is_code: currentTab === "code",
+      display_text: display,
+      hiragana_text: hiragana,
+    });
 
-        let sql = sqlHeader;
-        const values = items.map((item, index) => {
-            const escapedDisplay = item.display_text.replace(/'/g, "''");
-            const escapedHiragana = item.hiragana_text.replace(/'/g, "''");
-            const isLast = index === items.length - 1;
-            return `  (${item.is_code}, '${escapedDisplay}', '${escapedHiragana}')${isLast ? ';' : ','}`;
-        });
-        sql += values.join('\n');
+    displayText.value = "";
+    hiraganaText.value = "";
+    renderList();
+    itemList.scrollTop = itemList.scrollHeight;
+  }
 
-        const blob = new Blob([sql], { type: 'text/sql' });
-        const url = URL.createObjectURL(blob);
-        const a = document.createElement('a');
-        a.href = url;
-        a.download = '002_seed.sql';
-        document.body.appendChild(a);
-        a.click();
-        document.body.removeChild(a);
-        URL.revokeObjectURL(url);
+  function exportSQL() {
+    if (items.length === 0) {
+      alert("エクスポートするアイテムがありません。");
+      return;
     }
 
-    function updateFormPlaceholder() {
-        if (currentTab === 'code') {
-            displayText.placeholder = '例: Hello World';
-            hiraganaText.placeholder = '例: console.log("Hello World")';
-            hiraganaLabel.textContent = 'コード内容';
-        } else {
-            displayText.placeholder = '例: 猫';
-            hiraganaText.placeholder = '例: ねこ';
-            hiraganaLabel.textContent = 'ひらがな';
-        }
+    let sql = sqlHeader;
+    const values = items.map((item, index) => {
+      const escapedDisplay = item.display_text.replace(/'/g, "''");
+      const escapedHiragana = item.hiragana_text.replace(/'/g, "''");
+      const isLast = index === items.length - 1;
+      return `  (${item.is_code}, '${escapedDisplay}', '${escapedHiragana}')${isLast ? ";" : ","}`;
+    });
+    sql += values.join("\n");
+
+    const blob = new Blob([sql], { type: "text/sql" });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = "002_seed.sql";
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+    URL.revokeObjectURL(url);
+  }
+
+  function updateFormPlaceholder() {
+    if (currentTab === "code") {
+      displayText.placeholder = "例: Hello World";
+      hiraganaText.placeholder = '例: console.log("Hello World")';
+      hiraganaLabel.textContent = "コード内容";
+    } else {
+      displayText.placeholder = "例: 猫";
+      hiraganaText.placeholder = "例: ねこ";
+      hiraganaLabel.textContent = "ひらがな";
     }
+  }
 </script>
