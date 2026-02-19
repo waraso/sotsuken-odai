@@ -34,7 +34,6 @@ export const POST: APIRoute = async ({ request }) => {
     if (util) {
       const converter = util.kanaToHiragana || util.kanaToHiragna;
       if (converter) {
-        // Check if we have katakana
         if (
           (util.isKatakana && util.isKatakana(result)) ||
           (util.hasKatakana && util.hasKatakana(result))

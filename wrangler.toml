@@ -1,4 +1,0 @@
-name = "sotsuken-odai"
-compatibility_date = "2026-02-19"
-
-main = "./dist/_worker.js"
