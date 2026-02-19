@@ -12,6 +12,7 @@
     "postinstall": "npm run setup-dict"
   },
   "dependencies": {
+    "@astrojs/cloudflare": "^8.1.0",
     "@astrojs/tailwind": "^5.1.0",
     "astro": "^4.13.1",
     "kuroshiro": "^1.2.0",

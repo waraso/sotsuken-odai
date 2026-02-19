@@ -88,37 +88,33 @@ function getValidationRegex() {
   import { allowedChars } from "../consts";
   import { escapeHtml, generateValidationRegex } from "../utils";
   import type { Item } from "../types";
-  // @ts-ignore
-  import _Kuroshiro from "kuroshiro";
-  // @ts-ignore
-  import _KuromojiAnalyzer from "kuroshiro-analyzer-kuromoji";
-
-  // Handle CJS/ESM interop
-  const Kuroshiro = _Kuroshiro.default || _Kuroshiro;
-  const KuromojiAnalyzer = _KuromojiAnalyzer.default || _KuromojiAnalyzer;
 
   // Validation Regex
   const validationRegex = generateValidationRegex(allowedChars);
 
-  // Initialize kuroshiro
-  let kuroshiro: any = null;
-  async function initKuroshiro() {
-    if (kuroshiro) return kuroshiro;
+  // Convert text using API
+  async function convertText(text: string): Promise<string> {
+    try {
+      const response = await fetch("/sotsuken-odai/api/convert", {
+        method: "POST",
+        headers: {
+          "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ text }),
+      });
 
-    const k = new Kuroshiro();
-    console.log("[Client] Initializing Kuroshiro with KuromojiAnalyzer");
-    // Specify dictPath to load from public/dict
-    await k.init(
-      new KuromojiAnalyzer({ dictPath: import.meta.env.BASE_URL + "/dict" }),
-    );
-    kuroshiro = k;
-    return k;
+      if (!response.ok) {
+        const error = await response.json() as { error: string };
+        throw new Error(error.error || "Conversion failed");
+      }
+
+      const data = await response.json() as { result: string };
+      return data.result;
+    } catch (err) {
+      console.error("[Client] Conversion failed:", err);
+      throw err;
+    }
   }
-
-  // Initialize kuroshiro when the script loads
-  initKuroshiro().catch((err) => {
-    console.error("[Client] Failed to initialize kuroshiro:", err);
-  });
 
   // State
   let items: Item[] = [];
@@ -207,34 +203,15 @@ function getValidationRegex() {
     }
 
     // Use a debounce to avoid too many conversions
-    // Simple debounce implementation
     clearTimeout((displayText as any)._debounceTimer);
     (displayText as any)._debounceTimer = setTimeout(async () => {
       try {
         console.log("[Client] Converting text:", text);
-        const k = await initKuroshiro();
-        let result = await k.convert(text, { to: "hiragana" });
-
-        // Post-process with kanaToHiragana to ensure Katakana is converted
-        const util = Kuroshiro.Util;
-        if (util) {
-          const converter = util.kanaToHiragana || util.kanaToHiragna;
-          if (converter) {
-            // Check if we have katakana
-            if (
-              (util.isKatakana && util.isKatakana(result)) ||
-              (util.hasKatakana && util.hasKatakana(result))
-            ) {
-              console.log("[Client] Post-processing Katakana");
-              result = converter(result);
-            }
-          }
-        }
-
+        const result = await convertText(text);
         console.log("[Client] Conversion result:", result);
         hiraganaText.value = result;
       } catch (err) {
-        console.error("[Client] Conversion failed", err);
+        console.error("[Client] Conversion error:", err);
       }
     }, 500); // 500ms debounce
   });
