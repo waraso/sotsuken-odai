@@ -1,13 +1,21 @@
 import type { APIRoute } from "astro";
-// @ts-ignore
-import Kuroshiro from "kuroshiro";
-// @ts-ignore
-import KuromojiAnalyzer from "kuroshiro-analyzer-kuromoji";
+import { createRequire } from "module";
+
+const require = createRequire(import.meta.url);
 
 let kuroshiro: any = null;
 
 async function initKuroshiro(): Promise<any> {
   if (kuroshiro) return kuroshiro;
+
+  // Use require for CJS modules to avoid SSR bundling issues
+  const kuroshiroModule = require("kuroshiro");
+  const KuromojiAnalyzerModule = require("kuroshiro-analyzer-kuromoji");
+
+  // Try to get the class - might be default export or direct export
+  const Kuroshiro = kuroshiroModule.default || kuroshiroModule;
+  const KuromojiAnalyzer =
+    KuromojiAnalyzerModule.default || KuromojiAnalyzerModule;
 
   const k = new Kuroshiro();
   await k.init(new KuromojiAnalyzer());
@@ -30,7 +38,7 @@ export const POST: APIRoute = async ({ request }) => {
     let result = await k.convert(text, { to: "hiragana" });
 
     // Post-process with kanaToHiragana to ensure Katakana is converted
-    const util = (Kuroshiro as any).Util;
+    const util = (k.constructor as any).Util;
     if (util) {
       const converter = util.kanaToHiragana || util.kanaToHiragna;
       if (converter) {
@@ -49,9 +57,12 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (error) {
     console.error("[API] Conversion failed:", error);
+    const errorMessage = error instanceof Error ? error.message : String(error);
+    const errorStack = error instanceof Error ? error.stack : "";
     return new Response(
       JSON.stringify({
-        error: error instanceof Error ? error.message : "Conversion failed",
+        error: errorMessage,
+        stack: errorStack,
       }),
       {
         status: 500,
