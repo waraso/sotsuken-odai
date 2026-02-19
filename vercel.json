@@ -1,0 +1,7 @@
+{
+  "functions": {
+    "src/pages/api/**": {
+      "runtime": "nodejs20.x"
+    }
+  }
+}
