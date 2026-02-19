@@ -10,6 +10,12 @@ const corsHeaders = {
   "Content-Type": "application/json",
 };
 
+function katakanaToHiragana(str: string) {
+  return str.replace(/[\u30A1-\u30F6]/g, (match) =>
+    String.fromCharCode(match.charCodeAt(0) - 0x60),
+  );
+}
+
 export const OPTIONS: APIRoute = async () => {
   return new Response(null, {
     status: 204,
@@ -31,7 +37,7 @@ export const POST: APIRoute = async ({ request }) => {
     const response = await fetch(KUROSHIRO_API_ENDPOINT, {
       method: "POST",
       headers: { "Content-Type": "application/json" },
-      body: JSON.stringify({ text }),
+      body: JSON.stringify({ text: text, to: "hiragana" }),
     });
 
     if (!response.ok) {
@@ -41,7 +47,8 @@ export const POST: APIRoute = async ({ request }) => {
     const data = await response.json();
 
     // Ensure response has the expected format
-    const result = data.result || data.hiragana || data.converted || data;
+    const rawResult = data.result || data.hiragana || data.converted || data;
+    const result = katakanaToHiragana(String(rawResult));
 
     return new Response(JSON.stringify({ result }), {
       status: 200,
