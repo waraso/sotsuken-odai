@@ -9,4 +9,9 @@ export default defineConfig({
     nodeVersion: "20.x",
   }),
   integrations: [tailwind()],
+  vite: {
+    ssr: {
+      noExternal: ["kuroshiro", "kuroshiro-analyzer-kuromoji"],
+    },
+  },
 });
