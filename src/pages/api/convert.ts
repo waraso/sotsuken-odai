@@ -1,4 +1,9 @@
 import type { APIRoute } from "astro";
+import { fileURLToPath } from "url";
+import { dirname, join } from "path";
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 let kuroshiro: any = null;
 
@@ -15,8 +20,21 @@ async function initKuroshiro(): Promise<any> {
     const KuromojiAnalyzer =
       KuromojiAnalyzerModule.default || KuromojiAnalyzerModule;
 
+    // Try to resolve kuromoji dict path
+    let dictPath: string | undefined;
+    try {
+      const kuromojiPath = await import.meta.resolve("kuromoji");
+      const kuromojiDir = dirname(kuromojiPath.replace("file://", ""));
+      dictPath = join(kuromojiDir, "dict");
+    } catch (e) {
+      console.warn("[API] Could not resolve kuromoji dict path automatically");
+    }
+
     const k = new Kuroshiro();
-    await k.init(new KuromojiAnalyzer());
+    const analyzer = new KuromojiAnalyzer(
+      dictPath ? { dicPath: dictPath } : undefined,
+    );
+    await k.init(analyzer);
     kuroshiro = k;
     return k;
   } catch (error) {
