@@ -306,6 +306,14 @@ function getValidationRegex() {
 
     const fragment = document.createDocumentFragment();
     filteredItems.forEach((item) => {
+      const tagsHtml = isCodeTab
+        ? ""
+        : getDifficultyTags(item.hiragana_text)
+            .map(
+              (tag) =>
+                `<span class="text-xs font-semibold px-2 py-1 rounded-full ${getTagClass(tag)}">${tag}</span>`,
+            )
+            .join("");
       const div = document.createElement("div");
       div.className =
         "bg-slate-800 border border-slate-700 rounded-xl p-4 flex items-center gap-4 animate-[fadeIn_0.3s_ease]";
@@ -313,6 +321,7 @@ function getValidationRegex() {
                 <div class="flex-1">
                     <div class="font-bold text-lg mb-1">${escapeHtml(item.display_text)}</div>
                     <div class="text-slate-400 text-sm">${escapeHtml(item.hiragana_text)}</div>
+                    ${tagsHtml ? `<div class="mt-2 flex flex-wrap gap-2">${tagsHtml}</div>` : ""}
                 </div>
                 <button class="bg-red-500/10 text-red-500 p-2 rounded-lg hover:bg-red-500/20 transition-colors btn-delete" title="削除">✕</button>
             `;
@@ -327,6 +336,30 @@ function getValidationRegex() {
       fragment.appendChild(div);
     });
     itemList.appendChild(fragment);
+  }
+
+  function getDifficultyTags(hiragana: string) {
+    const length = Array.from(hiragana).length;
+    const tags: string[] = [];
+
+    if (length <= 5) tags.push("easy");
+    if (length >= 5 && length <= 10) tags.push("normal");
+    if (length >= 9) tags.push("hard");
+
+    return tags;
+  }
+
+  function getTagClass(tag: string) {
+    switch (tag) {
+      case "easy":
+        return "bg-emerald-500/15 text-emerald-300 border border-emerald-500/30";
+      case "normal":
+        return "bg-sky-500/15 text-sky-300 border border-sky-500/30";
+      case "hard":
+        return "bg-rose-500/15 text-rose-300 border border-rose-500/30";
+      default:
+        return "bg-slate-700/60 text-slate-200";
+    }
   }
 
   function addItem() {
