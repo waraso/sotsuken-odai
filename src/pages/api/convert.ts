@@ -1,32 +1,22 @@
 import type { APIRoute } from "astro";
-import { createRequire } from "module";
-
-const require = createRequire(import.meta.url);
+import Kuroshiro from "kuroshiro";
+import KuromojiAnalyzer from "kuroshiro-analyzer-kuromoji";
 
 let kuroshiro: any = null;
 
 async function initKuroshiro(): Promise<any> {
   if (kuroshiro) return kuroshiro;
 
-  try {
-    // Kuroshiro has ESM support, use dynamic import
-    const kuroshiroModule = await import("kuroshiro");
-    const Kuroshiro = kuroshiroModule.default || kuroshiroModule;
+  const k = new Kuroshiro();
 
-    // Kuromoji Analyzer is CommonJS, use require
-    const KuromojiAnalyzer = require("kuroshiro-analyzer-kuromoji");
+  await k.init(
+    new KuromojiAnalyzer({
+      dicPath: process.cwd() + "/public/dict",
+    }),
+  );
 
-    const k = new Kuroshiro();
-    await k.init(new KuromojiAnalyzer());
-    kuroshiro = k;
-    return k;
-  } catch (error) {
-    console.error(
-      "[API] Failed to initialize Kuroshiro:",
-      error instanceof Error ? error.message : String(error),
-    );
-    throw error;
-  }
+  kuroshiro = k;
+  return k;
 }
 
 export const POST: APIRoute = async ({ request }) => {
@@ -41,21 +31,7 @@ export const POST: APIRoute = async ({ request }) => {
     }
 
     const k = await initKuroshiro();
-    let result = await k.convert(text, { to: "hiragana" });
-
-    // Post-process with kanaToHiragana to ensure Katakana is converted
-    const util = (k.constructor as any).Util;
-    if (util) {
-      const converter = util.kanaToHiragana || util.kanaToHiragna;
-      if (converter) {
-        if (
-          (util.isKatakana && util.isKatakana(result)) ||
-          (util.hasKatakana && util.hasKatakana(result))
-        ) {
-          result = converter(result);
-        }
-      }
-    }
+    const result = await k.convert(text, { to: "hiragana" });
 
     return new Response(JSON.stringify({ result }), {
       status: 200,
@@ -63,17 +39,9 @@ export const POST: APIRoute = async ({ request }) => {
     });
   } catch (error) {
     console.error("[API] Conversion failed:", error);
-    const errorMessage = error instanceof Error ? error.message : String(error);
-    const errorStack = error instanceof Error ? error.stack : "";
-    return new Response(
-      JSON.stringify({
-        error: errorMessage,
-        stack: errorStack,
-      }),
-      {
-        status: 500,
-        headers: { "Content-Type": "application/json" },
-      },
-    );
+    return new Response(JSON.stringify({ error: String(error) }), {
+      status: 500,
+      headers: { "Content-Type": "application/json" },
+    });
   }
 };

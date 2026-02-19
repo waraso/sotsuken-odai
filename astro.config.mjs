@@ -11,7 +11,8 @@ export default defineConfig({
   integrations: [tailwind()],
   vite: {
     ssr: {
-      noExternal: ["kuroshiro", "kuroshiro-analyzer-kuromoji", "kuromoji"],
+      noExternal: ["kuroshiro", "kuroshiro-analyzer-kuromoji"],
+      external: ["kuromoji"],
     },
   },
 });
