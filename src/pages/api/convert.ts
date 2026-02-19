@@ -1,9 +1,7 @@
 import type { APIRoute } from "astro";
-import { fileURLToPath } from "url";
-import { dirname, join } from "path";
+import { createRequire } from "module";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
+const require = createRequire(import.meta.url);
 
 let kuroshiro: any = null;
 
@@ -11,30 +9,15 @@ async function initKuroshiro(): Promise<any> {
   if (kuroshiro) return kuroshiro;
 
   try {
-    // Use dynamic import for better compatibility with serverless environments
+    // Kuroshiro has ESM support, use dynamic import
     const kuroshiroModule = await import("kuroshiro");
-    const KuromojiAnalyzerModule = await import("kuroshiro-analyzer-kuromoji");
-
-    // Get the class - might be default export or direct export
     const Kuroshiro = kuroshiroModule.default || kuroshiroModule;
-    const KuromojiAnalyzer =
-      KuromojiAnalyzerModule.default || KuromojiAnalyzerModule;
 
-    // Try to resolve kuromoji dict path
-    let dictPath: string | undefined;
-    try {
-      const kuromojiPath = await import.meta.resolve("kuromoji");
-      const kuromojiDir = dirname(kuromojiPath.replace("file://", ""));
-      dictPath = join(kuromojiDir, "dict");
-    } catch (e) {
-      console.warn("[API] Could not resolve kuromoji dict path automatically");
-    }
+    // Kuromoji Analyzer is CommonJS, use require
+    const KuromojiAnalyzer = require("kuroshiro-analyzer-kuromoji");
 
     const k = new Kuroshiro();
-    const analyzer = new KuromojiAnalyzer(
-      dictPath ? { dicPath: dictPath } : undefined,
-    );
-    await k.init(analyzer);
+    await k.init(new KuromojiAnalyzer());
     kuroshiro = k;
     return k;
   } catch (error) {
