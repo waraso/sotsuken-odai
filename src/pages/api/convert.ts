@@ -1,26 +1,31 @@
 import type { APIRoute } from "astro";
-import { createRequire } from "module";
-
-const require = createRequire(import.meta.url);
 
 let kuroshiro: any = null;
 
 async function initKuroshiro(): Promise<any> {
   if (kuroshiro) return kuroshiro;
 
-  // Use require for CJS modules to avoid SSR bundling issues
-  const kuroshiroModule = require("kuroshiro");
-  const KuromojiAnalyzerModule = require("kuroshiro-analyzer-kuromoji");
+  try {
+    // Use dynamic import for better compatibility with serverless environments
+    const kuroshiroModule = await import("kuroshiro");
+    const KuromojiAnalyzerModule = await import("kuroshiro-analyzer-kuromoji");
 
-  // Try to get the class - might be default export or direct export
-  const Kuroshiro = kuroshiroModule.default || kuroshiroModule;
-  const KuromojiAnalyzer =
-    KuromojiAnalyzerModule.default || KuromojiAnalyzerModule;
+    // Get the class - might be default export or direct export
+    const Kuroshiro = kuroshiroModule.default || kuroshiroModule;
+    const KuromojiAnalyzer =
+      KuromojiAnalyzerModule.default || KuromojiAnalyzerModule;
 
-  const k = new Kuroshiro();
-  await k.init(new KuromojiAnalyzer());
-  kuroshiro = k;
-  return k;
+    const k = new Kuroshiro();
+    await k.init(new KuromojiAnalyzer());
+    kuroshiro = k;
+    return k;
+  } catch (error) {
+    console.error(
+      "[API] Failed to initialize Kuroshiro:",
+      error instanceof Error ? error.message : String(error),
+    );
+    throw error;
+  }
 }
 
 export const POST: APIRoute = async ({ request }) => {
