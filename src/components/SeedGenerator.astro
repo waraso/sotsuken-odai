@@ -141,6 +141,7 @@ function getValidationRegex() {
   // State
   let items: Item[] = [];
   let currentTab = "text";
+  let loadedFileName = "seed";
 
   // Elements
   const dropzone = document.getElementById("dropzone")!;
@@ -270,6 +271,7 @@ function getValidationRegex() {
       ) {
         return;
       }
+      loadedFileName = file.name.replace(/\.sql$/i, "");
       parseSQL(content);
       renderList();
     };
@@ -374,7 +376,7 @@ function getValidationRegex() {
     const url = URL.createObjectURL(blob);
     const a = document.createElement("a");
     a.href = url;
-    a.download = "002_seed.sql";
+    a.download = `${loadedFileName}.sql`;
     document.body.appendChild(a);
     a.click();
     document.body.removeChild(a);
