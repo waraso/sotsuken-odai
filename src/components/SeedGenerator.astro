@@ -80,6 +80,12 @@ function getValidationRegex() {
           >
             ✕
           </button>
+          <span
+            id="hiraganaSpinner"
+            class="absolute right-3 top-1/2 -translate-y-1/2 w-4 h-4 border-2 border-slate-400 border-t-transparent rounded-full animate-spin"
+            style="display: none"
+            aria-hidden="true"
+          ></span>
         </div>
       </div>
       <button
@@ -142,6 +148,8 @@ function getValidationRegex() {
   let items: Item[] = [];
   let currentTab = "text";
   let loadedFileName = "seed";
+  let isConverting = false;
+  let conversionRequestId = 0;
 
   // Elements
   const dropzone = document.getElementById("dropzone")!;
@@ -158,6 +166,7 @@ function getValidationRegex() {
   const btnExport = document.getElementById("btnExport")!;
   const btnClearDisplay = document.getElementById("btnClearDisplay")!;
   const btnClearHiragana = document.getElementById("btnClearHiragana")!;
+  const hiraganaSpinner = document.getElementById("hiraganaSpinner")!;
   const tabBtns = document.querySelectorAll(".tab-btn");
 
   let sqlHeader =
@@ -226,7 +235,9 @@ function getValidationRegex() {
 
   function updateButtonVisibility() {
     btnClearDisplay.style.display = displayText.value ? "block" : "none";
-    btnClearHiragana.style.display = hiraganaText.value ? "block" : "none";
+    btnClearHiragana.style.display =
+      !isConverting && hiraganaText.value ? "block" : "none";
+    hiraganaSpinner.style.display = isConverting ? "block" : "none";
   }
 
   displayText.addEventListener("input", updateButtonVisibility);
@@ -240,6 +251,7 @@ function getValidationRegex() {
     const text = (e.target as HTMLInputElement).value;
     if (!text) {
       hiraganaText.value = "";
+      isConverting = false;
       // Clear debounce
       clearTimeout((displayText as any)._debounceTimer);
       updateButtonVisibility();
@@ -249,6 +261,9 @@ function getValidationRegex() {
     // Use a debounce to avoid too many conversions
     clearTimeout((displayText as any)._debounceTimer);
     (displayText as any)._debounceTimer = setTimeout(async () => {
+      const requestId = ++conversionRequestId;
+      isConverting = true;
+      updateButtonVisibility();
       try {
         console.log("[Client] Converting text:", text);
         const result = await convertText(text);
@@ -257,8 +272,13 @@ function getValidationRegex() {
         updateButtonVisibility();
       } catch (err) {
         console.error("[Client] Conversion error:", err);
+      } finally {
+        if (conversionRequestId === requestId) {
+          isConverting = false;
+          updateButtonVisibility();
+        }
       }
-    }, 500); // 500ms debounce
+    }, 200); // 200ms debounce
   });
 
   function handleFile(file: File) {
