@@ -95,7 +95,7 @@ function getValidationRegex() {
   // Convert text using API
   async function convertText(text: string): Promise<string> {
     try {
-      const response = await fetch("/sotsuken-odai/api/convert", {
+      const response = await fetch("/api/convert", {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

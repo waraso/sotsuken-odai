@@ -6,8 +6,6 @@ import cloudflare from "@astrojs/cloudflare";
 export default defineConfig({
   output: "hybrid",
   adapter: cloudflare(),
-  site: "https://waraso.github.io",
-  base: "/sotsuken-odai",
   integrations: [tailwind()],
   vite: {
     resolve: {
