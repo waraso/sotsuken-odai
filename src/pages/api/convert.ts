@@ -9,11 +9,7 @@ async function initKuroshiro(): Promise<any> {
 
   const k = new Kuroshiro();
 
-  await k.init(
-    new KuromojiAnalyzer({
-      dicPath: process.cwd() + "/public/dict",
-    }),
-  );
+  await k.init(new KuromojiAnalyzer());
 
   kuroshiro = k;
   return k;
