@@ -40,12 +40,23 @@ function getValidationRegex() {
         <label for="displayText" class="block text-sm text-slate-400 mb-2"
           >表示テキスト</label
         >
-        <input
-          type="text"
-          id="displayText"
-          class="w-full bg-slate-900 border border-slate-700 text-slate-50 p-3 rounded-lg outline-none focus:border-indigo-500 transition-colors"
-          placeholder="例: 猫"
-        />
+        <div class="relative">
+          <input
+            type="text"
+            id="displayText"
+            class="w-full bg-slate-900 border border-slate-700 text-slate-50 p-3 rounded-lg outline-none focus:border-indigo-500 transition-colors pr-10"
+            placeholder="例: 猫"
+          />
+          <button
+            id="btnClearDisplay"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors"
+            type="button"
+            title="クリア"
+            style="display: none"
+          >
+            ✕
+          </button>
+        </div>
       </div>
       <div class="flex-1 min-w-[200px]">
         <label
@@ -53,12 +64,23 @@ function getValidationRegex() {
           for="hiraganaText"
           class="block text-sm text-slate-400 mb-2">ひらがな</label
         >
-        <input
-          type="text"
-          id="hiraganaText"
-          class="w-full bg-slate-900 border border-slate-700 text-slate-50 p-3 rounded-lg outline-none focus:border-indigo-500 transition-colors"
-          placeholder="例: ねこ"
-        />
+        <div class="relative">
+          <input
+            type="text"
+            id="hiraganaText"
+            class="w-full bg-slate-900 border border-slate-700 text-slate-50 p-3 rounded-lg outline-none focus:border-indigo-500 transition-colors pr-10"
+            placeholder="例: ねこ"
+          />
+          <button
+            id="btnClearHiragana"
+            class="absolute right-3 top-1/2 transform -translate-y-1/2 text-slate-400 hover:text-red-500 transition-colors"
+            type="button"
+            title="クリア"
+            style="display: none"
+          >
+            ✕
+          </button>
+        </div>
       </div>
       <button
         id="btnAdd"
@@ -133,6 +155,8 @@ function getValidationRegex() {
   const hiraganaLabel = document.getElementById("hiraganaLabel")!;
   const btnAdd = document.getElementById("btnAdd")!;
   const btnExport = document.getElementById("btnExport")!;
+  const btnClearDisplay = document.getElementById("btnClearDisplay")!;
+  const btnClearHiragana = document.getElementById("btnClearHiragana")!;
   const tabBtns = document.querySelectorAll(".tab-btn");
 
   let sqlHeader =
@@ -188,6 +212,24 @@ function getValidationRegex() {
 
   btnAdd.addEventListener("click", addItem);
   btnExport.addEventListener("click", exportSQL);
+  btnClearDisplay.addEventListener("click", () => {
+    displayText.value = "";
+    hiraganaText.value = "";
+    btnClearDisplay.style.display = "none";
+    btnClearHiragana.style.display = "none";
+  });
+  btnClearHiragana.addEventListener("click", () => {
+    hiraganaText.value = "";
+    updateButtonVisibility();
+  });
+
+  function updateButtonVisibility() {
+    btnClearDisplay.style.display = displayText.value ? "block" : "none";
+    btnClearHiragana.style.display = hiraganaText.value ? "block" : "none";
+  }
+
+  displayText.addEventListener("input", updateButtonVisibility);
+  hiraganaText.addEventListener("input", updateButtonVisibility);
 
   // Auto-conversion logic
   displayText.addEventListener("input", async (e) => {
@@ -199,6 +241,7 @@ function getValidationRegex() {
       hiraganaText.value = "";
       // Clear debounce
       clearTimeout((displayText as any)._debounceTimer);
+      updateButtonVisibility();
       return;
     }
 
@@ -210,6 +253,7 @@ function getValidationRegex() {
         const result = await convertText(text);
         console.log("[Client] Conversion result:", result);
         hiraganaText.value = result;
+        updateButtonVisibility();
       } catch (err) {
         console.error("[Client] Conversion error:", err);
       }
