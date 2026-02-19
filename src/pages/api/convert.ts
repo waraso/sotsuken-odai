@@ -1,19 +1,21 @@
 import type { APIRoute } from "astro";
-import Kuroshiro from "kuroshiro";
-import KuromojiAnalyzer from "kuroshiro-analyzer-kuromoji";
 
-let kuroshiro: any = null;
+const KUROSHIRO_API_ENDPOINT =
+  "https://kurishiro-api-worker.waraso.workers.dev/";
 
-async function initKuroshiro(): Promise<any> {
-  if (kuroshiro) return kuroshiro;
+const corsHeaders = {
+  "Access-Control-Allow-Origin": "*",
+  "Access-Control-Allow-Methods": "GET, POST, OPTIONS",
+  "Access-Control-Allow-Headers": "Content-Type",
+  "Content-Type": "application/json",
+};
 
-  const k = new Kuroshiro();
-
-  await k.init(new KuromojiAnalyzer());
-
-  kuroshiro = k;
-  return k;
-}
+export const OPTIONS: APIRoute = async () => {
+  return new Response(null, {
+    status: 204,
+    headers: corsHeaders,
+  });
+};
 
 export const POST: APIRoute = async ({ request }) => {
   try {
@@ -22,22 +24,34 @@ export const POST: APIRoute = async ({ request }) => {
     if (!text || typeof text !== "string") {
       return new Response(
         JSON.stringify({ error: "text parameter is required" }),
-        { status: 400, headers: { "Content-Type": "application/json" } },
+        { status: 400, headers: corsHeaders },
       );
     }
 
-    const k = await initKuroshiro();
-    const result = await k.convert(text, { to: "hiragana" });
+    const response = await fetch(KUROSHIRO_API_ENDPOINT, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ text }),
+    });
+
+    if (!response.ok) {
+      throw new Error(`Kuroshiro API error: ${response.statusText}`);
+    }
+
+    const data = await response.json();
+
+    // Ensure response has the expected format
+    const result = data.result || data.hiragana || data.converted || data;
 
     return new Response(JSON.stringify({ result }), {
       status: 200,
-      headers: { "Content-Type": "application/json" },
+      headers: corsHeaders,
     });
   } catch (error) {
     console.error("[API] Conversion failed:", error);
     return new Response(JSON.stringify({ error: String(error) }), {
       status: 500,
-      headers: { "Content-Type": "application/json" },
+      headers: corsHeaders,
     });
   }
 };
