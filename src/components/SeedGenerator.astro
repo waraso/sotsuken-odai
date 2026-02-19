@@ -131,7 +131,7 @@ function getValidationRegex() {
       }
 
       const data = await response.json() as { result: string };
-      return data.result;
+      return data.result.replace(/\u3000/g, " ");
     } catch (err) {
       console.error("[Client] Conversion failed:", err);
       throw err;
